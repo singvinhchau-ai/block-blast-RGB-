@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PHIMSEXHAY.VL</title>
+  <style>
+    :root{
+      --bg:#0f0f12; --card:#131417; --muted:#9aa0a6; --accent:#ff3b3b; --glass: rgba(255,255,255,0.04);
+      --radius:12px; --max-width:1200px;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; background:linear-gradient(180deg,#07070a, #0f0f12); color:#e6e9ee;}
+    .app{max-width:var(--max-width); margin:28px auto; padding:18px;}
+
+    /* Header */
+    header{display:flex; align-items:center; gap:16px; margin-bottom:18px}
+    .logo{display:flex; align-items:center; gap:10px; font-weight:700}
+    .logo .mark{width:44px; height:44px; background:linear-gradient(90deg,#ff3b3b,#ff8a00); border-radius:8px; display:flex;align-items:center;justify-content:center; font-weight:800}
+    .search{flex:1; display:flex; align-items:center; gap:8px}
+    .search input{flex:1; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:var(--card); color:inherit}
+    .search button{padding:10px 14px; border-radius:10px; border:none; background:var(--accent); color:white; cursor:pointer}
+    .user{display:flex; gap:10px; align-items:center}
+    .user .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(90deg,#6b7280,#111827);display:inline-block}
+
+    /* Layout */
+    .layout{display:grid; grid-template-columns:220px 1fr; gap:18px}
+    nav{background:var(--glass); padding:12px; border-radius:12px; height:fit-content}
+    nav a{display:block; padding:8px 10px; border-radius:8px; color:var(--muted); text-decoration:none; margin-bottom:6px}
+    nav a.active{background:linear-gradient(90deg,#1f2937,#111827); color:#fff}
+
+    main{min-height:60vh}
+    .section-title{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px}
+    .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:14px}
+
+    /* Card */
+    .card{background:var(--card); border-radius:12px; overflow:hidden; box-shadow: 0 6px 18px rgba(2,6,23,0.6); cursor:pointer}
+    .thumb{position:relative; background:#111; height:130px; display:block}
+    .thumb img{width:100%; height:100%; object-fit:cover; display:block}
+    .duration{position:absolute; right:8px; bottom:8px; background:rgba(0,0,0,0.7); padding:4px 6px; border-radius:6px; font-size:12px}
+    .meta{padding:10px}
+    .meta h3{margin:0 0 6px; font-size:15px}
+    .meta p{margin:0; color:var(--muted); font-size:13px}
+
+    /* Modal */
+    .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)); z-index:1000}
+    .modal.open{display:flex}
+    .player{width:90%; max-width:1100px; background: #08090b; border-radius:12px; overflow:hidden}
+    .player .video{background:black; aspect-ratio:16/9}
+    .player .info{padding:12px 16px}
+
+    /* Responsive */
+    @media (max-width:800px){
+      .layout{grid-template-columns:1fr}
+      nav{display:flex; gap:8px; overflow:auto}
+      .thumb{height:160px}
+    }
+
+    /* small helpers */
+    .muted{color:var(--muted)}
+    .pill{background:rgba(255,255,255,0.03); padding:6px 10px; border-radius:999px}
+
+/* BACKDROP */
+    .intro-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 360ms ease;
+    }
+    .intro-backdrop.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* MODAL */
+    .intro {
+      width: min(900px, 90%);
+      max-width: 1000px;
+      background: linear-gradient(180deg,#0b1220 0%, #14233a 100%);
+      color: #fff;
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      transform: translateY(10px) scale(0.99);
+      transition: transform 360ms ease, opacity 360ms ease;
+      opacity: 0;
+    }
+    .intro-backdrop.show .intro {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+
+    /* CONTENT */
+    .intro h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.4px; }
+    .intro p { margin: 0 0 16px; line-height: 1.4; color: #d6e6ff; opacity: 0.95; }
+    .intro .buttons {
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      margin-top: 8px;
+    }
+    button {
+      font: 16px system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: #1f7bff;
+      color: white;
+      box-shadow: 0 6px 18px rgba(31,123,255,0.18);
+    }
+    button.secondary {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    /* small text / checkbox */
+    .intro .opt {
+      margin-left: auto;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      font-size: 13px;
+      color: #cfe0ff;
+    }
+
+    /* small screens */
+    @media (max-width:520px){
+      .intro { padding: 18px; border-radius: 8px; }
+      .intro h1 { font-size: 20px; }
+      button { font-size: 14px; padding: 8px 10px; }
+    }
+
+  </style>
+</head>
+<body>
+   <!-- NỘI DUNG TRANG CHÍNH -->
+  <main>
+    <h2>Chào mừng đến trang của bạn</h2>
+    <p>Phần nội dung trang nằm ở đây. Thử reload trang để kiểm tra intro.</p>
+  </main>
+
+  <!-- INTRO OVERLAY -->
+  <div id="introBackdrop" class="intro-backdrop" role="dialog" aria-modal="true" aria-labelledby="introTitle" aria-hidden="true">
+    <div class="intro" id="intro" tabindex="-1">
+      <h1 id="introTitle">Chào mừng!</h1>
+      <p>Đây là màn chào mừng (intro). Bạn có thể bấm "Bắt đầu" để vào trang, hoặc "Bỏ qua".</p>
+      <div class="buttons">
+        <button id="startBtn">Bắt đầu</button>
+        <button id="skipBtn" class="secondary">Bỏ qua</button>
+
+        <label class="opt" title="Không hiện lại">
+          <input id="dontShow" type="checkbox" aria-label="Không hiện lại lần sau" />
+          <span>Không hiện lại</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const backdrop = document.getElementById('introBackdrop');
+      const intro = document.getElementById('intro');
+      const startBtn = document.getElementById('startBtn');
+      const skipBtn = document.getElementById('skipBtn');
+      const dontShow = document.getElementById('dontShow');
+
+      // TÙY CHỈNH
+      const AUTO_HIDE_MS = 6000; // tự ẩn sau bao nhiêu ms (0 để tắt)
+      const STORAGE_KEY = 'mySiteIntroHidden_v1';
+
+      // Nếu đã chọn "Không hiện lại" trước đó -> không show
+      if (localStorage.getItem(STORAGE_KEY) === 'true') {
+        // Không hiện intro
+        return;
+      }
+
+      // Hiện overlay
+      function openIntro() {
+        backdrop.classList.add('show');
+        backdrop.setAttribute('aria-hidden', 'false');
+        // focus vào modal để hỗ trợ bàn phím
+        intro.focus();
+        // đặt timeout nếu muốn auto-hide
+        if (AUTO_HIDE_MS > 0) {
+          window._introAutoHide = setTimeout(() => {
+            closeIntro();
+          }, AUTO_HIDE_MS);
+        }
+      }
+
+      // Đóng overlay
+      function closeIntro() {
+        // clear timeout nếu có
+        if (window._introAutoHide) {
+          clearTimeout(window._introAutoHide);
+          window._introAutoHide = null;
+        }
+        backdrop.classList.remove('show');
+        backdrop.setAttribute('aria-hidden', 'true');
+        // trả focus về body (hoặc một phần tử khác nếu cần)
+        document.body.focus();
+        // nếu người dùng tick "Không hiện lại" -> lưu
+        if (dontShow.checked) {
+          localStorage.setItem(STORAGE_KEY, 'true');
+        }
+      }
+
+      // Event handlers
+      startBtn.addEventListener('click', () => {
+        // ở đây bạn có thể thêm animation, chuyển trang, play âm thanh...
+        closeIntro();
+      });
+      skipBtn.addEventListener('click', closeIntro);
+
+      // Click vào backdrop (ngoài modal) -> đóng
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) closeIntro();
+      });
+
+      // Phím ESC đóng
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && backdrop.classList.contains('show')) {
+          closeIntro();
+        }
+      });
+
+      // Accessibility: trap focus trong modal (đơn giản)
+      document.addEventListener('focusin', (e) => {
+        if (!backdrop.classList.contains('show')) return;
+        if (!intro.contains(e.target)) {
+          // đưa focus trở lại modal
+          intro.focus();
+        }
+      });
+
+      // Mở intro khi DOM đã sẵn sàng
+      window.addEventListener('load', openIntro);
+    })();
+  </script>
+  <div class="app">
+    <header>
+      <div class="logo">
+        <div class="mark">P</div>
+        <div>
+          <div>PHIM SEX VL
+          
+          </div>
+          <div class="muted" style="font-size:12px">Trang phim</div>
+        </div>
+      </div>
+
+      <div class="search">
+        <input id="searchInput" placeholder="Tìm phim, diễn viên, thể loại..." />
+        <button id="searchBtn">Tìm</button>
+      </div>
+
+      <div class="user">
+        <div class="pill muted">Đăng nhập</div>
+        <div class="avatar"></div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav>
+        <a class="active">Trang chủ</a>
+        <a>Thịnh hành</a>
+        <a>Thể loại</a>
+        <a>Nhật Bản</a>
+        <a>Việt Nam</a>
+        <a>Châu Mỹ</a>
+        <a>Châu Phi</a>
+        <a>Sex Thú</a>
+        <a>Hentai</a>
+      </nav>
+
+      <main>
+        <div class="section-title">
+          <h2>Mới nhất</h2>
+          <div class="muted">Hiển thị <span id="count">0</span> phim</div>
+        </div>
+
+        <div class="grid" id="grid"></div>
+      </main>
+    </div>
+  </div>
+
+  
+  <div class="modal" id="modal">
+    <div class="player" role="dialog" aria-modal="true">
+      <div class="video" id="videoContainer">
+        
+      </div>
+      <div class="info">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <div>
+            <h3 id="vTitle" style="margin:0">Tiêu đề phim</h3>
+            <div class="muted" id="vMeta">Kênh • 1.2M lượt xem • 2025</div>
+          </div>
+          <button id="closeBtn" style="padding:8px 12px; border-radius:8px; border:none; background:var(--accent); color:white">Đóng</button>
+        </div>
+        <p class="muted" style="margin-top:10px" id="vDesc">Mô tả ngắn về phim sẽ hiển thị ở đây. Thay thế bằng dữ liệu thật khi bạn kết nối backend.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const movies = [
+      {id:1, title:'SEX ', duration:'2:08:12', thumb:'https://sextop1.sale/images/2025/10/ven-quan-lot-dit-ban-than-cua-vo-trong-toilet-khi-di-du-lich-chung-410x300.jpg', views:'1.2M', year:2025, desc:'Phim hành động kịch tính.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:2, title:'Tình Yêu Mùa Hè', duration:'1:50:05', thumb:'https://sextop1.sale/images/2025/10/anh-trai-moi-ra-tu-den-o-nho-nha-em-trai-roi-cuong-hiep-luon-em-dau-vi-nung-410x300.jpg', views:'823K', year:2025, desc:'Phim tình cảm lãng mạn.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:3, title:'Bị sỉ nhục vì 30 tuổi chưa biết làm tình , người con cầu xin mẹ kế giúp', duration:'1:42:30', thumb:'https://sextop1.sale/images/2025/10/bi-si-nhuc-vi-30-tuoi-dau-van-chua-lam-tinh-cau-em-chong-van-xin-chi-dau-giup-do-410x300.jpg', views:'502K', year:2025, desc:'Phim mẹ và con' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:4, title:'Em học trò tỏ tình thầy giáo và cái kết sướng tung lồn', duration:'2:20:10', thumb:'https://sextop1.sale/images/2025/10/em-hoc-tro-dang-yeu-dan-thay-giao-vao-khach-san-to-tinh-410x300.jpg', views:'2.4M', year:2025, desc:'Phim khoa học viễn tưởng.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:5, title:'Ông bố lụm luôn con dâu', duration:'1:35:44', thumb:'https://sextop1.sale/images/2025/10/em-chong-dit-chi-dau-ngay-trong-ngay-gio-anh-trai-de-tra-thu-chuyen-cu-410x300.jpg', views:'310K', year:2025, desc:'Phim cổ trang, tâm lý.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:6, title:'SEX GIA KIỆT', duration:'1:00:07', thumb:'https://sextop1.sale/images/2025/10/trom-vat-o-kho-hang-bi-phat-hien-nguoi-phu-nu-bi-tro-thanh-cho-xa-voi-gia-951-yen-410x300.jpg', views:'1.0M', year:2025, desc:'Phim sex vietsub.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:7, title:'Cô gái bị bắt cóc và cái kết', duration:'1:40:10', thumb:'https://sextop1.sale/images/2025/10/chong-bi-lua-dan-den-pha-san-vo-phan-ban-than-theo-gio-de-tra-vo-cho-chong-410x300.jpg', views:'3K', year:2025, desc:'Phim sex vietsub.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:8, title:'Anh sếp và cô thư kí dâm đãng', duration:'1:01:00', thumb:'https://sextop1.sale/images/2025/10/em-nhan-vien-cai-gi-cung-dot-duoc-cai-xinh-ngon-nen-bi-sep-ep-lam-nguoi-mau-noi-y-410x300.jpg', views:'30K', year:2025, desc:'Phim không che.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:9, title:'Vợ và anh hàng xóm quyến rũ', duration:'1:01:50', thumb:'https://sextop1.sale/images/2025/10/em-thich-truong-phong-lam-em-muon-lam-tinh-voi-anh-410x300.jpg', views:'1K', year:2025, desc:'Phim hậu tận thế.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:10, title:'Anh da đen cu bự và cô giáo dạy tiếng Nhật lồn múp', duration:'2:00:00', thumb:'https://sextop1.sale/images/2025/10/chan-nan-vi-chong-suot-ngay-nhau-nhet-vo-di-hoc-lop-anh-ngu-roi-me-thay-giao-da-den-410x300.jpg', views:'1.0M', year:2025, desc:'Phim sex châu âu.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:11, title:'Anh thợ điện và chị chủ nhà', duration:'2:00:00', thumb:'https://sextop1.sale/images/2025/10/vo-cam-3-ngay-khong-duoc-dung-vao-chong-chiu-khong-noi-hap-diem-co-em-vo-410x300.jpg', views:'55K', year:2025, desc:'Phim sex không che.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:12, title:'Về quê thăm cô em người yêu cũ may mắn', duration:'58:07', thumb:'https://sextop1.sale/images/2025/10/cap-doi-sinh-vien-my-thuat-dam-chim-trong-nhung-ngay-lam-tinh-o-que-moi-ngay-410x300.jpg', views:'10K', year:2025, desc:'Phim sex không che.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:13, title:'Đôi bạn thân đổi vợ cho nhau', duration:'1:00:00', thumb:'https://sextop1.sale/images/2025/10/nhung-cap-vo-chong-trao-doi-cho-nhau-de-tim-cam-giac-moi-la-ngay-canh-ben-410x300.jpg', views:'1.0M', year:2025, desc:'Phim .' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:14, title:'Chị chủ trang trại vui tính và anh chồng nhu cầu cao', duration:'2:50:00', thumb:'https://sextop1.sale/images/2025/10/ve-que-trong-mua-he-oi-a-chau-gai-ve-que-tham-nguoi-chu-goa-vo-da-luon-yeu-thuong-co-410x300.jpg', views:'1.1M', year:2025, desc:'Phim loạn luân.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:15, title:'Hai em hotgirl mang bikini đi làm và cái kết', duration:'1:20:00', thumb:'https://sextop1.sale/images/2025/10/thanh-nien-vao-lam-o-cong-ty-do-lot-toan-nu-duoc-hai-chi-gai-cham-soc-chu-dao-410x300.jpg', views:'1.2M', year:2025, desc:'Phim sex không che.' , video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+      {id:16, title:'Anh trai dạy em gái làm tình', duration:'30:00', thumb:'https://sextop1.sale/images/2025/10/khong-thoa-man-voi-ban-trai-toi-tim-den-cau-ban-nam-xua-da-tung-to-tinh-toi-410x300.jpg', views:'1M', year:2025, desc:'Phim sex không che', video:'https://phimsexhayvl.com/a3853e3b-b88e-4a7a-9151-5b1ec0c0af93'},
+
+    ];
+
+    const grid = document.getElementById('grid');
+    const count = document.getElementById('count');
+    const modal = document.getElementById('modal');
+    const videoContainer = document.getElementById('videoContainer');
+    const vTitle = document.getElementById('vTitle');
+    const vMeta = document.getElementById('vMeta');
+    const vDesc = document.getElementById('vDesc');
+    const closeBtn = document.getElementById('closeBtn');
+
+    function render(list){
+      grid.innerHTML = '';
+      list.forEach(m => {
+        const card = document.createElement('article'); card.className='card';
+        card.innerHTML = `
+          <div class="thumb" data-id="${m.id}">
+            <img src="${m.thumb}" alt="${m.title}" loading="lazy">
+            <div class="duration">${m.duration}</div>
+          </div>
+          <div class="meta">
+            <h3>${m.title}</h3>
+            <p class="muted">${m.views} • ${m.year}</p>
+          </div>
+        `;
+        card.addEventListener('click', ()=>openPlayer(m));
+        grid.appendChild(card);
+      });
+      count.textContent = list.length;
+    }
+
+    function openPlayer(movie){
+      videoContainer.innerHTML = `<iframe width="100%" height="100%" src="${movie.video}?autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+      vTitle.textContent = movie.title;
+      vMeta.textContent = `Phim • ${movie.views} lượt xem • ${movie.year}`;
+      vDesc.textContent = movie.desc;
+      modal.classList.add('open');
+    }
+
+    function closePlayer(){
+      modal.classList.remove('open');
+      videoContainer.innerHTML = '';
+    }
+
+    closeBtn.addEventListener('click', closePlayer);
+    modal.addEventListener('click', (e)=>{ if(e.target===modal) closePlayer(); });
+
+    
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    function doSearch(){
+      const q = searchInput.value.trim().toLowerCase();
+      if(!q){ render(movies); return; }
+      const filtered = movies.filter(m => (m.title + ' ' + m.desc).toLowerCase().includes(q));
+      render(filtered);
+    }
+    searchBtn.addEventListener('click', doSearch);
+    searchInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSearch(); });
+
+   
+    render(movies);
+  </script>
+</body>
+</html>

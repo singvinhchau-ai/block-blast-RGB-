@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Block Blast – LED RGB Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --r: #ff003c;
+    --g: #00ff88;
+    --b: #00c8ff;
+    --p: #b400ff;
+    --y: #ffcc00;
+    --bg: #050508;
+    --bg2: #0a0a12;
+    --card: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: #e8e8f0;
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--b);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s;
+    box-shadow: 0 0 12px var(--b), 0 0 24px var(--b);
+    transform: translate(-50%, -50%);
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1px solid rgba(0,200,255,0.5);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.15s ease, width 0.2s, height 0.2s;
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    pointer-events: none;
+    z-index: 9990;
+  }
+
+  /* ========== HERO ========== */
+  #hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    padding: 2rem;
+  }
+
+  /* Grid background */
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    animation: gridPan 20s linear infinite;
+  }
+
+  @keyframes gridPan {
+    0% { transform: perspective(600px) rotateX(20deg) translateY(0); }
+    100% { transform: perspective(600px) rotateX(20deg) translateY(48px); }
+  }
+
+  /* Floating blocks */
+  .float-block {
+    position: absolute;
+    border-radius: 4px;
+    opacity: 0.15;
+    animation: floatBlock linear infinite;
+  }
+
+  @keyframes floatBlock {
+    0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.2; }
+    90% { opacity: 0.15; }
+    100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+
+  .hero-content { position: relative; z-index: 2; }
+
+  .hero-badge {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    color: var(--g);
+    border: 1px solid var(--g);
+    padding: 0.3em 1em;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    box-shadow: 0 0 12px rgba(0,255,136,0.3);
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .hero-title {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: clamp(2.8rem, 8vw, 7rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.3em;
+  }
+
+  .title-block { display: block; }
+  .title-blast {
+    display: block;
+    background: linear-gradient(90deg, var(--r), var(--p), var(--b));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(0,200,255,0.6));
+    animation: rgbShift 4s ease infinite;
+  }
+
+  @keyframes rgbShift {
+    0% { filter: drop-shadow(0 0 30px rgba(255,0,60,0.7)); }
+    33% { filter: drop-shadow(0 0 30px rgba(180,0,255,0.7)); }
+    66% { filter: drop-shadow(0 0 30px rgba(0,200,255,0.7)); }
+    100% { filter: drop-shadow(0 0 30px rgba(255,0,60,0.7)); }
+  }
+
+  .hero-edition {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(0.65rem, 2vw, 1rem);
+    color: var(--y);
+    letter-spacing: 0.4em;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 16px var(--y);
+  }
+
+  .hero-tagline {
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    font-weight: 300;
+    color: rgba(232,232,240,0.7);
+    margin-bottom: 3rem;
+    letter-spacing: 0.05em;
+  }
+
+  .hero-tagline span {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .btn-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  .btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.9em 2.2em;
+    border: none;
+    border-radius: 4px;
+    cursor: none;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.4s;
+  }
+
+  .btn:hover::before { transform: translateX(100%); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--b), var(--p));
+    color: #fff;
+    box-shadow: 0 0 20px rgba(0,200,255,0.5), 0 0 40px rgba(0,200,255,0.2);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 30px rgba(0,200,255,0.8), 0 0 60px rgba(0,200,255,0.3);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    backdrop-filter: blur(4px);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--g);
+    color: var(--g);
+    box-shadow: 0 0 20px rgba(0,255,136,0.3);
+    transform: translateY(-3px);
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.3);
+    animation: fadeUpDown 2s ease infinite;
+  }
+
+  .scroll-arrow {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--b));
+  }
+
+  @keyframes fadeUpDown {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.5; }
+    50% { transform: translateX(-50%) translateY(8px); opacity: 1; }
+  }
+
+  /* ========== SECTION COMMON ========== */
+  section { padding: 6rem 2rem; position: relative; }
+
+  .section-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.35em;
+    color: var(--b);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+  }
+
+  .section-title .accent { color: var(--b); }
+
+  .divider {
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--b), var(--p));
+    margin-bottom: 3rem;
+    box-shadow: 0 0 10px var(--b);
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* ========== GAMEPLAY PREVIEW ========== */
+  #preview {
+    background: var(--bg2);
+  }
+
+  #preview .inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .video-frame {
+    position: relative;
+    aspect-ratio: 16/9;
+    background: #000;
+    border: 1px solid rgba(0,200,255,0.3);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0,200,255,0.2), 0 0 60px rgba(0,200,255,0.05), inset 0 0 30px rgba(0,0,0,0.8);
+  }
+
+  /* Fake gameplay canvas */
+  .game-canvas {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 2px;
+    padding: 20px;
+  }
+
+  .game-row {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 2px;
+  }
+
+  .game-cell {
+    border-radius: 2px;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .game-cell.filled {
+    animation: cellPulse 2s ease infinite;
+  }
+
+  @keyframes cellPulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.4); }
+  }
+
+  .game-cell.c-r { background: var(--r); box-shadow: 0 0 6px var(--r); }
+  .game-cell.c-g { background: var(--g); box-shadow: 0 0 6px var(--g); }
+  .game-cell.c-b { background: var(--b); box-shadow: 0 0 6px var(--b); }
+  .game-cell.c-p { background: var(--p); box-shadow: 0 0 6px var(--p); }
+  .game-cell.c-y { background: var(--y); box-shadow: 0 0 6px var(--y); }
+  .game-cell.empty { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); }
+
+  /* Score overlay */
+  .game-score {
+    position: absolute;
+    top: 12px; right: 16px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    color: var(--y);
+    text-shadow: 0 0 10px var(--y);
+  }
+
+  .game-score .num {
+    font-size: 1.5rem;
+    font-weight: 900;
+    display: block;
+    animation: scoreCount 3s ease infinite;
+  }
+
+  @keyframes scoreCount {
+    0% { content: '12480'; }
+    100% { }
+  }
+
+  /* Line clear animation */
+  .clear-flash {
+    position: absolute;
+    left: 0; right: 0;
+    height: 28px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    animation: flashRow 3s ease infinite;
+    pointer-events: none;
+  }
+
+  @keyframes flashRow {
+    0%, 100% { opacity: 0; top: 20px; }
+    30% { opacity: 0; top: 20px; }
+    35% { opacity: 1; top: 20px; }
+    40% { opacity: 0; top: 20px; }
+    60% { opacity: 0; top: 54px; }
+    65% { opacity: 1; top: 54px; }
+    70% { opacity: 0; top: 54px; }
+  }
+
+  .play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.4);
+    z-index: 10;
+    cursor: none;
+    transition: background 0.3s;
+  }
+
+  .play-overlay:hover { background: rgba(0,0,0,0.2); }
+
+  .play-btn-big {
+    width: 72px; height: 72px;
+    border: 2px solid rgba(255,255,255,0.8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(4px);
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 30px rgba(255,255,255,0.2);
+  }
+
+  .play-overlay:hover .play-btn-big {
+    transform: scale(1.1);
+    box-shadow: 0 0 50px rgba(0,200,255,0.6);
+    border-color: var(--b);
+  }
+
+  .play-icon {
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 12px 0 12px 22px;
+    border-color: transparent transparent transparent #fff;
+    margin-left: 4px;
+  }
+
+  /* Corner decorations */
+  .corner-tl, .corner-br {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: var(--b);
+    border-style: solid;
+  }
+  .corner-tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .corner-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  .preview-desc { }
+
+  .preview-desc h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+
+  .preview-desc p {
+    color: rgba(232,232,240,0.7);
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+  }
+
+  .feature-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0,200,255,0.08);
+    border: 1px solid rgba(0,200,255,0.2);
+    padding: 0.5em 1em;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    margin: 0.3rem 0.2rem;
+    color: var(--b);
+    transition: all 0.2s;
+  }
+
+  .feature-pill:hover {
+    background: rgba(0,200,255,0.15);
+    box-shadow: 0 0 15px rgba(0,200,255,0.3);
+  }
+
+  /* ========== SCREENSHOTS ========== */
+  #screenshots {
+    background: var(--bg);
+  }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .gallery-item {
+    position: relative;
+    aspect-ratio: 16/10;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    cursor: none;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .gallery-item:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 30px rgba(0,200,255,0.4), 0 0 60px rgba(0,200,255,0.1);
+    z-index: 2;
+    border-color: rgba(0,200,255,0.4);
+  }
+
+  /* Procedurally generated "screenshots" */
+  .ss-canvas {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px;
+    background: #060610;
+  }
+
+  .ss-row {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+  }
+
+  .ss-cell {
+    flex: 1;
+    border-radius: 2px;
+    min-height: 8px;
+  }
+
+  .ss-label {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.1em;
+  }
+
+  .ss-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.5), transparent 40%);
+  }
+
+  .gallery-item:hover .ss-overlay {
+    background: linear-gradient(to top, rgba(0,200,255,0.1), transparent 40%);
+  }
+
+  /* Zoom icon */
+  .zoom-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 44px; height: 44px;
+    background: rgba(0,200,255,0.2);
+    border: 1px solid rgba(0,200,255,0.6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    font-size: 1.2rem;
+  }
+
+  .gallery-item:hover .zoom-icon { transform: translate(-50%, -50%) scale(1); }
+
+  /* ========== FEATURES ========== */
+  #features {
+    background: var(--bg2);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .feat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2rem 1.5rem;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent, var(--b)), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .feat-card:hover {
+    border-color: rgba(255,255,255,0.15);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 30px rgba(0,200,255,0.1);
+    background: rgba(255,255,255,0.05);
+  }
+
+  .feat-card:hover::before { opacity: 1; }
+
+  .feat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .feat-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.7rem;
+    color: #fff;
+  }
+
+  .feat-desc {
+    font-size: 0.9rem;
+    color: rgba(232,232,240,0.55);
+    line-height: 1.6;
+  }
+
+  /* ========== HOW TO PLAY ========== */
+  #howtoplay {
+    background: var(--bg);
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    position: relative;
+  }
+
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 40px;
+    left: 5%;
+    right: 5%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--b), var(--p), var(--r), transparent);
+    opacity: 0.3;
+  }
+
+  .step {
+    text-align: center;
+    position: relative;
+  }
+
+  .step-num {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--b), var(--p));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: 1.3rem;
+    margin: 0 auto 1.2rem;
+    box-shadow: 0 0 20px rgba(0,200,255,0.5);
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+    filter: drop-shadow(0 0 8px rgba(0,200,255,0.5));
+  }
+
+  .step-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #fff;
+  }
+
+  .step-desc {
+    font-size: 0.9rem;
+    color: rgba(232,232,240,0.55);
+    line-height: 1.6;
+  }
+
+  /* ========== DEVELOPER STORY ========== */
+  #devstory {
+    background: var(--bg2);
+  }
+
+  .devstory-inner {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 5rem;
+    align-items: center;
+  }
+
+  .dev-avatar-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .avatar-ring {
+    position: relative;
+    width: 180px; height: 180px;
+  }
+
+  .avatar-ring::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(var(--r), var(--p), var(--b), var(--g), var(--y), var(--r));
+    animation: spin 4s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .avatar-inner {
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--bg2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+  }
+
+  .tech-stack {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .tech-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.4em 0.9em;
+    border-radius: 4px;
+    border: 1px solid;
+    letter-spacing: 0.1em;
+  }
+
+  .tech-html { border-color: #e34c26; color: #e34c26; background: rgba(227,76,38,0.08); }
+  .tech-css { border-color: #264de4; color: #264de4; background: rgba(38,77,228,0.08); }
+  .tech-js { border-color: #f7df1e; color: #f7df1e; background: rgba(247,223,30,0.08); }
+
+  .dev-text p {
+    color: rgba(232,232,240,0.75);
+    line-height: 1.9;
+    font-size: 1.05rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .dev-text p:first-child {
+    font-size: 1.2rem;
+    color: rgba(232,232,240,0.9);
+    font-weight: 600;
+  }
+
+  .quote-bar {
+    border-left: 3px solid var(--b);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+    color: rgba(232,232,240,0.6);
+  }
+
+  /* ========== CTA ========== */
+  #cta {
+    background: var(--bg);
+    text-align: center;
+    padding: 8rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #cta::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,200,255,0.06) 0%, transparent 70%);
+    animation: ctaPulse 3s ease infinite;
+  }
+
+  @keyframes ctaPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  }
+
+  .cta-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 900;
+    margin-bottom: 1rem;
+    position: relative;
+    line-height: 1.1;
+  }
+
+  .cta-title span {
+    background: linear-gradient(90deg, var(--r), var(--p), var(--b), var(--g));
+    background-size: 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientMove 3s linear infinite;
+  }
+
+  @keyframes gradientMove {
+    0% { background-position: 0%; }
+    100% { background-position: 200%; }
+  }
+
+  .cta-sub {
+    color: rgba(232,232,240,0.5);
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
+    position: relative;
+  }
+
+  .btn-cta {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 1.2em 3em;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--b), var(--p), var(--r));
+    background-size: 200%;
+    color: #fff;
+    position: relative;
+    cursor: none;
+    animation: btnGradient 3s linear infinite, btnGlow 2s ease infinite;
+    display: inline-block;
+    transition: transform 0.2s;
+  }
+
+  @keyframes btnGradient {
+    0% { background-position: 0%; }
+    100% { background-position: 200%; }
+  }
+
+  @keyframes btnGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(0,200,255,0.5), 0 0 60px rgba(0,200,255,0.2); }
+    50% { box-shadow: 0 0 40px rgba(180,0,255,0.7), 0 0 100px rgba(180,0,255,0.3); }
+  }
+
+  .btn-cta:hover { transform: scale(1.05); }
+
+  /* ========== FOOTER ========== */
+  footer {
+    background: #020205;
+    border-top: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    text-align: center;
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--b);
+    text-shadow: 0 0 10px var(--b);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .footer-links a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: rgba(232,232,240,0.4);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--b); }
+
+  .footer-copy {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: rgba(232,232,240,0.25);
+    letter-spacing: 0.1em;
+  }
+
+  /* ========== NAV ========== */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 1.2rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(5,5,8,0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .nav-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-logo .accent { color: var(--b); }
+  .nave-logo .accent1 { color : #fff}
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+
+  }
+
+  .nav-links a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    color: rgba(232,232,240,0.5);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--b); }
+
+  .nav-btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.6em 1.4em;
+    background: linear-gradient(135deg, var(--b), var(--p));
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: none;
+    text-decoration: none;
+    box-shadow: 0 0 15px rgba(0,200,255,0.4);
+    transition: all 0.2s;
+  }
+
+  .nav-btn:hover { box-shadow: 0 0 25px rgba(0,200,255,0.7); transform: translateY(-2px); }
+
+  /* ========== REVEAL ANIMATIONS ========== */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ========== RGB BORDER ========== */
+  .rgb-border {
+    border: 1px solid transparent;
+    background: linear-gradient(var(--bg2), var(--bg2)) padding-box,
+                linear-gradient(135deg, var(--r), var(--p), var(--b), var(--g)) border-box;
+    animation: rgbBorderShift 4s linear infinite;
+  }
+
+  @keyframes rgbBorderShift {
+    0% { background: linear-gradient(var(--bg2), var(--bg2)) padding-box, linear-gradient(135deg, var(--r), var(--p), var(--b), var(--g)) border-box; }
+    25% { background: linear-gradient(var(--bg2), var(--bg2)) padding-box, linear-gradient(135deg, var(--p), var(--b), var(--g), var(--r)) border-box; }
+    50% { background: linear-gradient(var(--bg2), var(--bg2)) padding-box, linear-gradient(135deg, var(--b), var(--g), var(--r), var(--p)) border-box; }
+    75% { background: linear-gradient(var(--bg2), var(--bg2)) padding-box, linear-gradient(135deg, var(--g), var(--r), var(--p), var(--b)) border-box; }
+    100% { background: linear-gradient(var(--bg2), var(--bg2)) padding-box, linear-gradient(135deg, var(--r), var(--p), var(--b), var(--g)) border-box; }
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 900px) {
+    #preview .inner { grid-template-columns: 1fr; gap: 2.5rem; }
+    .devstory-inner { grid-template-columns: 1fr; gap: 3rem; }
+    .gallery { grid-template-columns: repeat(2, 1fr); }
+    .steps::before { display: none; }
+    nav { padding: 1rem; }
+    .nav-links { display: none; }
+  }
+
+  @media (max-width: 600px) {
+    .gallery { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+  }
+
+  /* stats bar */
+  .stats-bar {
+    background: rgba(0,200,255,0.05);
+    border-top: 1px solid rgba(0,200,255,0.1);
+    border-bottom: 1px solid rgba(0,200,255,0.1);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 4rem;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--b);
+    text-shadow: 0 0 15px var(--b);
+    display: block;
+  }
+
+  .stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: rgba(232,232,240,0.4);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* Version badge */
+  .version-float {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(232,232,240,0.3);
+    letter-spacing: 0.15em;
+    z-index: 50;
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">BLOCK<span class="accent">BLAST</span> <span class="accent1"> VINHSING </span></div>
+  <ul class="nav-links">
+    <li><a href="#preview">GAMEPLAY</a></li>
+    <li><a href="#screenshots">SCREENSHOTS</a></li>
+    <li><a href="#features">FEATURES</a></li>
+    <li><a href="#howtoplay">HOW TO PLAY</a></li>
+    <li><a href="#devstory">DEV</a></li>
+  </ul>
+  <a href="#cta" class="nav-btn">▶ PLAY NOW</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="grid-bg"></div>
+
+  <!-- floating blocks -->
+  <div id="floatBlocks"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">★ INDIE GAME — LED RGB EDITION ★</div>
+    <h1 class="hero-title">
+      <span class="title-block">BLOCK</span>
+      <span class="title-blast">BLAST</span>
+    </h1>
+    <p class="hero-edition">⬛ LED RGB EDITION ⬛</p>
+    <p class="hero-tagline">The block puzzle that <span>never lets you stop.</span></p>
+    <div class="btn-group">
+      <a href="#cta" class="btn btn-primary">▶ PLAY NOW</a>
+      <a href="#howtoplay" class="btn btn-secondary">📖 HOW TO PLAY</a>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>SCROLL</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat"><span class="stat-num" data-target="100000000">0</span><span class="stat-label">Players</span></div>
+  <div class="stat"><span class="stat-num" data-target="500000">0</span><span class="stat-label">Blocks Placed</span></div>
+  <div class="stat"><span class="stat-num" data-target="9999">0</span><span class="stat-label">High Score</span></div>
+  <div class="stat"><span class="stat-num">∞</span><span class="stat-label">Replayability</span></div>
+</div>
+
+<!-- GAMEPLAY PREVIEW -->
+<section id="preview">
+  <div class="container">
+    <div class="inner">
+      <div class="reveal">
+        <div class="video-frame rgb-border">
+          <div class="game-canvas" id="gameCanvas"></div>
+          <div class="clear-flash"></div>
+          <div class="game-score">
+            <span style="font-size:0.6rem;letter-spacing:0.1em;color:rgba(255,204,0,0.6)">SCORE</span>
+            <span class="num" id="scoreDisplay">24,680</span>
+          </div>
+          <div class="play-overlay" id="playOverlay">
+            <div class="play-btn-big"><div class="play-icon"></div></div>
+          </div>
+          <div class="corner-tl"></div>
+          <div class="corner-br"></div>
+        </div>
+      </div>
+
+      <div class="preview-desc reveal">
+        
+        <h2>Drop. <span style="color:var(--b)">Blast.</span><br>Repeat.</h2>
+        <div class="divider"></div>
+        <p>Block Blast là game xếp khối gây nghiện nơi mỗi quyết định đặt block đều có thể tạo ra phản ứng dây chuyền rực rỡ. Đơn giản để học — không thể ngừng chơi.</p>
+        <p>Hãy tư duy chiến lược, tối ưu vị trí, và phá vỡ kỷ lục của chính mình.</p>
+        <div>
+          <span class="feature-pill">🟥 Đặt block thông minh</span>
+          <span class="feature-pill">⚡ Tạo combo dây chuyền</span>
+          <span class="feature-pill">🏆 Phá kỷ lục điểm số</span>
+          <span class="feature-pill">🎮 Gameplay vô tận</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENSHOTS -->
+<section id="screenshots">
+  <div class="container">
+    
+    <h2 class="section-title"><span class="accent">Visual</span> Gallery</h2>
+    <div class="divider"></div>
+    <div class="gallery" id="gallery"></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="section-label">// FEATURES</div>
+    <h2 class="section-title">What Makes It <span class="accent">Special</span></h2>
+    <div class="divider"></div>
+    <div class="features-grid">
+      <div class="feat-card reveal" style="--accent:var(--r)">
+        <span class="feat-icon">🌈</span>
+        <div class="feat-title">RGB NEON VISUALS</div>
+        <div class="feat-desc">Hiệu ứng ánh sáng LED rực rỡ. Mỗi block phát sáng như một pixel trên bảng điều khiển arcade thực thụ.</div>
+      </div>
+      <div class="feat-card reveal" style="--accent:var(--g)">
+        <span class="feat-icon">🧩</span>
+        <div class="feat-title">SATISFYING PLACEMENT</div>
+        <div class="feat-desc">Cảm giác click đặt block cực kỳ mãn nguyện. Thiết kế để não bộ muốn tiếp tục mãi.</div>
+      </div>
+      <div class="feat-card reveal" style="--accent:var(--b)">
+        <span class="feat-icon">🏆</span>
+        <div class="feat-title">ENDLESS HIGH SCORE</div>
+        <div class="feat-desc">Không có điểm kết thúc. Chỉ có điểm cao hơn nữa. Thử thách chính mình mỗi lần chơi.</div>
+      </div>
+      <div class="feat-card reveal" style="--accent:var(--p)">
+        <span class="feat-icon">✨</span>
+        <div class="feat-title">SMOOTH ANIMATIONS</div>
+        <div class="feat-desc">60FPS mượt mà. Hiệu ứng xóa hàng với particle explosion đẹp mắt và responsive.</div>
+      </div>
+      <div class="feat-card reveal" style="--accent:var(--y)">
+        <span class="feat-icon">🧘</span>
+        <div class="feat-title">RELAXING STRATEGY</div>
+        <div class="feat-desc">Không áp lực thời gian. Suy nghĩ thong thả, chơi theo nhịp của riêng bạn.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO PLAY -->
+<section id="howtoplay">
+  <div class="container">
+   
+    <h2 class="section-title">Get Started in <span class="accent">4 Steps</span></h2>
+    <div class="divider"></div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <span class="step-icon">🎯</span>
+        <div class="step-title">CHỌN BLOCK</div>
+        <div class="step-desc">Chọn một trong các khối block hiển thị ở dưới bảng chơi.</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">02</div>
+        <span class="step-icon">🖱️</span>
+        <div class="step-title">KÉO VÀO BẢNG</div>
+        <div class="step-desc">Kéo thả hoặc click để đặt block vào vị trí bạn muốn trên lưới.</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">03</div>
+        <span class="step-icon">💥</span>
+        <div class="step-title">LẤP ĐẦY HÀNG</div>
+        <div class="step-desc">Lấp đầy hàng ngang hoặc cột dọc để kích hoạt line clear rực rỡ.</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">04</div>
+        <span class="step-icon">🚀</span>
+        <div class="step-title">GHI KỶ LỤC</div>
+        <div class="step-desc">Combo nhiều hàng liên tiếp để nhân điểm và leo bảng xếp hạng.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEVELOPER STORY -->
+<section id="devstory">
+  <div class="container">
+    <div class="devstory-inner">
+      <div class="dev-avatar-area reveal">
+        <div class="avatar-ring">
+          <div class="avatar-inner">👨‍💻</div>
+        </div>
+        <div class="tech-stack">
+          <span class="tech-badge tech-html">HTML5</span>
+          <span class="tech-badge tech-css">CSS3</span>
+          <span class="tech-badge tech-js">JavaScript</span>
+        </div>
+      </div>
+      <div class="dev-text reveal">
+     
+        <h2 class="section-title" style="margin-bottom:1.5rem">Built with <span class="accent">Passion</span></h2>
+        <div class="quote-bar">
+          "Tôi không tạo ra game này để kiếm tiền — tôi tạo ra nó để học, để sáng tạo, và để chia sẻ niềm vui."
+        </div>
+        <p>Block Blast được tạo bởi một học sinh đam mê công nghệ và lập trình. Dự án bắt đầu từ một bài tập nhỏ và dần trở thành một game thực thụ với hệ thống điểm số, hiệu ứng RGB và gameplay được thiết kế cẩn thận.</p>
+        <p>Toàn bộ được xây dựng bằng HTML, CSS và JavaScript thuần túy — không framework, không engine, chỉ có đam mê và hàng giờ code.</p>
+        <p>Mỗi pixel, mỗi animation, mỗi hiệu ứng âm thanh đều được tạo ra với mục tiêu: <strong style="color:#fff">tạo ra một trải nghiệm game đáng nhớ.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="container">
+    <div class="reveal">
+      <h2 class="cta-title"><span>PLAY BLOCK BLAST NOW</span></h2>
+      <p class="cta-sub" style="margin-bottom:3rem">Free to play. No download required. Start instantly.</p>
+      <a href="#" class="btn-cta">▶ LAUNCH GAME</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">BLOCK BLAST RGB</div>
+    <ul class="footer-links">
+      <li><a href="#">PLAY</a></li>
+      <li><a href="#howtoplay">HOW TO PLAY</a></li>
+      <li><a href="#devstory">ABOUT</a></li>
+      <li><a href="mailto:contact@blockblast.dev">CONTACT</a></li>
+    </ul>
+    <div class="footer-copy">Block Blast RGB v1.0.0 — Developed by Vinh Sing - 2026</div>
+  </div>
+</footer>
+
+<div class="version-float">v1.0.0 RGB</div>
+
+<script>
+// Custom cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+});
+
+function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+
+document.querySelectorAll('a, button, .btn, .feat-card, .gallery-item').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.transform = 'translate(-50%,-50%) scale(2)';
+    ring.style.width = '60px'; ring.style.height = '60px';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.transform = 'translate(-50%,-50%) scale(1)';
+    ring.style.width = '36px'; ring.style.height = '36px';
+  });
+});
+
+// Floating blocks
+const colors = ['#ff003c','#00ff88','#00c8ff','#b400ff','#ffcc00'];
+const container = document.getElementById('floatBlocks');
+
+for (let i = 0; i < 20; i++) {
+  const block = document.createElement('div');
+  block.className = 'float-block';
+  const size = Math.random() * 30 + 10;
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  block.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random()*100}%;
+    background:${color};
+    box-shadow:0 0 10px ${color};
+    animation-duration:${Math.random()*15+10}s;
+    animation-delay:${Math.random()*-20}s;
+  `;
+  container.appendChild(block);
+}
+
+// Game canvas
+const canvas = document.getElementById('gameCanvas');
+const colors2 = ['c-r','c-g','c-b','c-p','c-y','empty'];
+const weights = [12,12,12,12,12,40];
+
+function weightedRandom() {
+  const total = weights.reduce((a,b) => a+b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < weights.length; i++) {
+    if (r < weights[i]) return colors2[i];
+    r -= weights[i];
+  }
+  return 'empty';
+}
+
+const ROWS = 8, COLS = 10;
+let grid = [];
+for (let r = 0; r < ROWS; r++) {
+  const row = document.createElement('div');
+  row.className = 'game-row';
+  let rowCells = [];
+  for (let c = 0; c < COLS; c++) {
+    const cell = document.createElement('div');
+    const cl = weightedRandom();
+    cell.className = 'game-cell ' + cl + (cl !== 'empty' ? ' filled' : '');
+    row.appendChild(cell);
+    rowCells.push(cell);
+  }
+  canvas.appendChild(row);
+  grid.push(rowCells);
+}
+
+// Animate score
+let score = 24680;
+setInterval(() => {
+  score += Math.floor(Math.random() * 50 + 10);
+  document.getElementById('scoreDisplay').textContent = score.toLocaleString();
+}, 1500);
+
+// Gallery
+const gallery = document.getElementById('gallery');
+const ssConfigs = [
+  { label: 'COMBO x4', palette: ['c-r','c-p','empty','empty','c-b'] },
+  { label: 'HIGH SCORE', palette: ['c-g','c-b','empty','c-y','empty'] },
+  { label: 'LINE CLEAR', palette: ['c-b','c-b','c-b','c-b','c-b'] },
+  { label: 'RGB MODE', palette: ['c-r','c-g','c-b','c-p','c-y'] },
+  { label: 'COMBO x7', palette: ['c-p','empty','c-r','c-b','empty'] },
+  { label: 'LEVEL UP', palette: ['c-y','c-r','empty','c-g','c-p'] },
+];
+
+ssConfigs.forEach(conf => {
+  const item = document.createElement('div');
+  item.className = 'gallery-item';
+  const cvs = document.createElement('div');
+  cvs.className = 'ss-canvas';
+  for (let r = 0; r < 6; r++) {
+    const row = document.createElement('div');
+    row.className = 'ss-row';
+    for (let c = 0; c < 10; c++) {
+      const cell = document.createElement('div');
+      const cl = conf.palette[Math.floor(Math.random() * conf.palette.length)];
+      cell.className = 'ss-cell ' + cl;
+      if (cl !== 'empty') {
+        cell.style.boxShadow = '';
+      } else {
+        cell.style.background = 'rgba(255,255,255,0.04)';
+        cell.style.border = '1px solid rgba(255,255,255,0.06)';
+      }
+      row.appendChild(cell);
+    }
+    cvs.appendChild(row);
+  }
+  const overlay = document.createElement('div');
+  overlay.className = 'ss-overlay';
+  const label = document.createElement('div');
+  label.className = 'ss-label';
+  label.textContent = conf.label;
+  const zoom = document.createElement('div');
+  zoom.className = 'zoom-icon';
+  zoom.textContent = '🔍';
+  item.appendChild(cvs);
+  item.appendChild(overlay);
+  item.appendChild(label);
+  item.appendChild(zoom);
+  gallery.appendChild(item);
+});
+
+// Stats counter animation
+function animateCounter(el, target, suffix = '') {
+  let start = 0;
+  const duration = 2000;
+  const startTime = performance.now();
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const value = Math.floor(eased * target);
+    el.textContent = value.toLocaleString() + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// Reveal on scroll
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+reveals.forEach(r => observer.observe(r));
+
+// Stats observer
+const statsEls = document.querySelectorAll('.stat-num[data-target]');
+const statsObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const target = parseInt(e.target.dataset.target);
+      animateCounter(e.target, target);
+      statsObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+statsEls.forEach(el => statsObserver.observe(el));
+
+// Play overlay
+document.getElementById('playOverlay').addEventListener('click', function() {
+  this.style.display = 'none';
+  // Animate cells randomly to simulate gameplay
+  setInterval(() => {
+    const rows = canvas.querySelectorAll('.game-row');
+    const row = rows[Math.floor(Math.random() * rows.length)];
+    const cells = row.querySelectorAll('.game-cell');
+    const cell = cells[Math.floor(Math.random() * cells.length)];
+    const newC = colors2[Math.floor(Math.random() * (colors2.length-1))];
+    cell.className = 'game-cell ' + newC + ' filled';
+  }, 200);
+});
+
+// RGB grid line ambient animation
+const gridEl = document.querySelector('.grid-bg');
+let hue = 200;
+setInterval(() => {
+  hue = (hue + 0.5) % 360;
+  const r = `hsla(${hue}, 100%, 60%, 0.06)`;
+  gridEl.style.backgroundImage = `linear-gradient(${r} 1px, transparent 1px), linear-gradient(90deg, ${r} 1px, transparent 1px)`;
+}, 50);
+</script>
+</body>
+</html>

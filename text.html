@@ -1,0 +1,129 @@
+ <!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Click the Circle!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #222;
+            color: white;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        #game-area {
+            position: relative;
+            width: 600px;
+            height: 400px;
+            background: #333;
+            margin-top: 20px;
+            border: 3px solid #fff;
+            overflow: hidden;
+        }
+
+        .circle {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: red;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        #score, #time {
+            margin-top: 10px;
+        }
+
+        #start-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background: limegreen;
+            color: black;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #start-btn:hover {
+            background: #00cc00;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Click the Circle!</h1>
+    <div id="score">Điểm: 0</div>
+    <div id="time">Thời gian còn lại: 30 giây</div>
+    <button id="start-btn">Bắt đầu</button>
+    <div id="game-area"></div>
+
+    <script>
+        const gameArea = document.getElementById('game-area');
+        const scoreDisplay = document.getElementById('score');
+        const timeDisplay = document.getElementById('time');
+        const startBtn = document.getElementById('start-btn');
+
+        let score = 0;
+        let timeLeft = 30;
+        let gameInterval, timerInterval;
+
+        function getRandomPosition() {
+            const x = Math.random() * (gameArea.clientWidth - 50);
+            const y = Math.random() * (gameArea.clientHeight - 50);
+            return { x, y };
+        }
+
+        function spawnCircle() {
+            gameArea.innerHTML = ''; // Xóa vòng tròn cũ
+            const circle = document.createElement('div');
+            circle.classList.add('circle');
+
+            const { x, y } = getRandomPosition();
+            circle.style.left = x + 'px';
+            circle.style.top = y + 'px';
+
+            circle.onclick = () => {
+                score++;
+                scoreDisplay.textContent = 'Điểm: ' + score;
+                spawnCircle();
+            };
+
+            gameArea.appendChild(circle);
+        }
+
+        function startGame() {
+            score = 0;
+            timeLeft = 30;
+            scoreDisplay.textContent = 'Điểm: 0';
+            timeDisplay.textContent = 'Thời gian còn lại: 30 giây';
+            startBtn.disabled = true;
+
+            spawnCircle();
+
+            gameInterval = setInterval(spawnCircle, 1000);
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timeDisplay.textContent = 'Thời gian còn lại: ' + timeLeft + ' giây';
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    clearInterval(gameInterval);
+                    gameArea.innerHTML = '';
+                    alert('⏰ Hết giờ! Tổng điểm của bạn là: ' + score);
+                    startBtn.disabled = false;
+                }
+            }, 1000);
+        }
+
+        startBtn.onclick = startGame;
+    </script>
+</body>
+</html>

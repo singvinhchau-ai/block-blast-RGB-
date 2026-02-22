@@ -1,0 +1,99 @@
+header {
+    background-color: #000000;
+    color: white;
+    padding: 20px;
+
+    display: flex;
+    justify-content: space-between; /* logo trái - nút phải */
+    align-items: center;
+}
+
+/* Logo TAIXIU.VINHSING.COM */
+/*.logo {
+    font-size: 3rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+/* Các nút bên phải */
+/*.actions {
+    display: flex;
+    gap: 15px;
+}
+
+/* Style nút */
+/*.btn {
+    padding: 10px 20px;
+    background: black;
+    color: #1c1cc8;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+/* Hiệu ứng hover */
+/*.btn:hover {
+    background: #333;
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height:50vh;}
+.khung, .khung2 {
+    cursor: pointer;
+    transition: 0.2s;
+    width: 200px;
+    height: 10vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    background: rgb(111, 0, 255);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.khung:hover, .khung2:hover {
+    transform: translateY(-2px);
+}
+
+.khung:active, .khung2:active {
+    transform: scale(0.95);
+}
+.khung:hover
+{
+    transform:translate(0.2px) ;
+}
+.khung:active{
+    transform: scale(0.95);
+}
+
+h1 {
+    box-shadow: #0000a4;
+    text-align: center;
+    color : white;
+    border-radius: 2px;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;}
+    
+
+section {
+    padding: 40px 20px;
+}
+footer {
+    background-color: #a3a9b095;
+    padding: 1px;
+    font-size: 1em;
+     text-align: center;
+     margin-top: 25px;
+}
