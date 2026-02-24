@@ -6,6 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0a0a">
     <title>Block Blast - LED RGB Edition</title>
     <style>
         * {
@@ -19,36 +20,50 @@
             -ms-user-select: none;
             user-select: none;
         }
+        
+        /* Prevent white background */
+        html {
+            background: #0a0a0a;
+        }
 
         html, body {
             overscroll-behavior: none;
             touch-action: pan-x pan-y;
             -webkit-overflow-scrolling: touch;
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+            background-attachment: fixed;
             color: #fff;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            min-height: -webkit-fill-available;
             overflow-x: hidden;
+            overflow-y: auto;
             position: relative;
         }
 
         /* Animated background */
         body::before {
             content: '';
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(138, 43, 226, 0.05) 0%, transparent 50%),
-                        radial-gradient(circle, rgba(0, 255, 255, 0.05) 0%, transparent 50%);
-            animation: bgRotate 20s linear infinite;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 50%, rgba(138, 43, 226, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 50%, rgba(0, 255, 255, 0.05) 0%, transparent 50%);
             z-index: 0;
+            pointer-events: none;
         }
         
         /* Disable heavy animations on mobile */
@@ -74,6 +89,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
         }
 
         h1 {
@@ -174,14 +192,14 @@
                 #14b8a6 100%
             );
             background-size: 200% 200%;
-            animation: ledPulse 3s ease-in-out infinite, popIn 0.3s ease-out;
+            animation: ledPulse 3s ease-in-out infinite;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        /* Simplified animation for mobile */
+        /* Slower animation on mobile for performance */
         @media (hover: none) and (pointer: coarse) {
             .cell.filled {
-                animation: ledPulseMobile 5s linear infinite, popIn 0.3s ease-out;
+                animation: ledPulseMobile 5s linear infinite !important;
             }
         }
         
@@ -569,10 +587,23 @@
             }
         }
 
-        /* Mobile styles */
+        /* Mobile specific fixes for full screen */
         @media (max-width: 600px) {
+            html {
+                height: -webkit-fill-available;
+            }
+            
+            body {
+                min-height: 100vh;
+                min-height: -webkit-fill-available;
+            }
+            
             .container {
                 padding: 8px 5px;
+                min-height: auto;
+                justify-content: flex-start;
+                padding-top: max(env(safe-area-inset-top), 20px);
+                padding-bottom: max(env(safe-area-inset-bottom), 20px);
             }
 
             h1 {
@@ -701,42 +732,40 @@
             }
         }
 
-        /* Performance optimization for mobile - disable heavy animations */
+        /* Performance optimization for mobile - keep RGB but optimize */
         @media (hover: none) and (pointer: coarse) {
-            .cell.filled {
-                animation: none !important;
-                background: linear-gradient(135deg, #a855f7 0%, #6366f1 50%, #06b6d4 100%);
-            }
-            
             body::before {
                 animation: none;
                 opacity: 0.3;
             }
             
             h1 {
-                animation: none;
-                background: linear-gradient(90deg, #ff00ff, #00ffff);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
+                animation: gradientShift 4s linear infinite;
             }
             
             .block-cell::before {
                 display: none;
             }
             
-            /* Instant clearing - no animation */
+            /* Quick clearing - no heavy animation */
             .cell.clearing {
-                animation: none !important;
-                opacity: 0.5;
+                animation: clearEffectSimple 0.2s ease-out forwards !important;
             }
             
-            /* Disable all transitions on mobile */
+            @keyframes clearEffectSimple {
+                to {
+                    opacity: 0;
+                    transform: scale(0.8);
+                }
+            }
+            
+            /* Faster transitions */
             .cell {
-                transition: none !important;
+                transition: opacity 0.1s ease !important;
             }
             
             .block-container {
-                transition: transform 0.1s ease !important;
+                transition: transform 0.15s ease !important;
             }
         }
         @media (max-height: 600px) and (orientation: landscape) {
@@ -1330,27 +1359,25 @@
                     showCombo(clearedLines);
                 }
 
-                // Clear immediately - no delay
+                // Clear with quick animation
+                const clearDelay = isMobileDevice ? 200 : 300;
+                
                 cellsToClear.forEach(coord => {
                     const [row, col] = coord.split('-').map(Number);
                     grid[row][col] = 0;
                     const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
                     
                     if (cell) {
+                        cell.classList.add('clearing');
+                        
                         // Create particles only on desktop
                         if (!isMobileDevice) {
                             createParticles(cell);
                         }
                         
-                        // Instant clear on mobile, quick fade on desktop
-                        if (isMobileDevice) {
-                            cell.classList.remove('filled');
-                        } else {
-                            cell.classList.add('clearing');
-                            setTimeout(() => {
-                                cell.classList.remove('filled', 'clearing');
-                            }, 300);
-                        }
+                        setTimeout(() => {
+                            cell.classList.remove('filled', 'clearing');
+                        }, clearDelay);
                     }
                 });
 
